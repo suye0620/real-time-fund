@@ -17,6 +17,16 @@ import { storageStore } from '@/app/stores';
 const STORAGE_KEY = 'fundDailyEarnings';
 export const DAILY_EARNINGS_SCOPE_ALL = 'all';
 
+export const normalizeFundDailyEarningsScoped = (source) => {
+  if (typeof source !== 'object' || source === null || Array.isArray(source)) return {};
+  const values = Object.values(source);
+  const hasScoped = values.some((v) => typeof v === 'object' && v !== null && !Array.isArray(v));
+  if (!hasScoped) {
+    return { [DAILY_EARNINGS_SCOPE_ALL]: source };
+  }
+  return source;
+};
+
 function normalizeItem(item) {
   if (!item || typeof item !== 'object') return null;
   const date = item.date;

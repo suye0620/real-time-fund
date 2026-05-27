@@ -86,5 +86,8 @@ fabric.properties
 .idea/*
 .husky/_/
 
+# Server data directory (SQLite)
+/data/
+
 # Sentry Config File
 .env.sentry-build-plugin
