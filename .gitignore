@@ -91,3 +91,7 @@ fabric.properties
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# AI IDE generated files
+.cursor/
+.trae/
