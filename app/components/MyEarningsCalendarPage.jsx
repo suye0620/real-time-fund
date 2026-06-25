@@ -1,7 +1,7 @@
 'use client';
 import { useIsMobile } from '@/app/hooks/useIsMobile';
 
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
@@ -22,23 +22,27 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
+import { isNumber } from 'lodash';
 import { CloseIcon } from './Icons';
 import FitText from './FitText';
-import { cn } from '@/lib/utils';
+import { cn, formatMoney } from '@/lib/utils';
+import { calculateYtdReturnRate, getAllDailyEarnings } from '@/app/lib/dailyEarnings';
+import { storageStore } from '@/app/stores';
 
 dayjs.locale('zh-cn');
 
 const SWIPE_THRESHOLD = 72;
 
-function formatEarnings(v, masked) {
+function formatEarnings(v, masked, isRate = false) {
   if (masked) return '***';
   if (typeof v !== 'number' || !Number.isFinite(v)) return '—';
   const sign = v > 0 ? '+' : v < 0 ? '-' : '';
-  return `${sign}${Math.abs(v).toFixed(2)}`;
+  const formatted = formatMoney(Math.abs(v));
+  return isRate ? `${sign}${formatted}%` : `${sign}${formatted}`;
 }
 
 function earningsClass(v) {
-  if (typeof v !== 'number' || !Number.isFinite(v)) return '';
+  if (!isNumber(v) || !Number.isFinite(v)) return '';
   if (v > 0) return 'up';
   if (v < 0) return 'down';
   return '';
@@ -55,6 +59,34 @@ export default function MyEarningsCalendarPage({open, onOpenChange, series = [],
   const [viewTab, setViewTab] = useState('day');
   const [cursorMonth, setCursorMonth] = useState(() => dayjs().startOf('month'));
   const [cursorYear, setCursorYear] = useState(() => dayjs().year());
+  const [ytdRate, setYtdRate] = useState(null);
+
+  useEffect(() => {
+    if (!open) {
+      setYtdRate(null);
+      return undefined;
+    }
+    let cancelled = false;
+    const compute = async () => {
+      try {
+        const earningsMap = getAllDailyEarnings('all');
+        const holdings = storageStore.getItem('holdings', {});
+        const rate = calculateYtdReturnRate(earningsMap, holdings);
+        if (!cancelled) {
+          if (isNumber(rate) && Number.isFinite(rate)) {
+            setYtdRate(rate);
+          } else {
+            setYtdRate(null);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to compute YTD rate', e);
+        if (!cancelled) setYtdRate(null);
+      }
+    };
+    compute();
+    return () => { cancelled = true; };
+  }, [open]);
 
   const earningsByDate = useMemo(() => {
     const map = new Map();
@@ -455,6 +487,19 @@ export default function MyEarningsCalendarPage({open, onOpenChange, series = [],
                         </div>
                       ))
                     )}
+                  </div>
+                )}
+                {isNumber(ytdRate) && (
+                  <div className="shrink-0 pt-4 pb-6">
+                    <div className="my-earnings-calendar-card flex justify-center p-4 mt-2">
+                      <div className="text-center text-[14px] text-muted-foreground">
+                        今年以来收益率{' '}
+                        <span className={cn('font-medium', earningsClass(ytdRate))}>
+                          {ytdRate > 0 ? '+' : ''}
+                          {ytdRate}%
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

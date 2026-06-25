@@ -295,6 +295,14 @@ export default function FundDailyEarnings({ series = [], theme = 'dark', masked 
     }];
   }, [theme, masked]);
 
+  const dataRangeHint = useMemo(() => {
+    if (!Array.isArray(series) || series.length === 0) return null;
+    const first = series[0]?.date;
+    const last = series[series.length - 1]?.date;
+    if (!first || !last) return null;
+    return `数据范围：${first} ~ ${last}`;
+  }, [series]);
+
   if (!series.length) return null;
 
   return (
@@ -333,6 +341,11 @@ export default function FundDailyEarnings({ series = [], theme = 'dark', masked 
           </button>
         ))}
       </div>
+      {dataRangeHint && (
+        <div style={{ fontSize: 11, color: 'var(--muted-foreground)', textAlign: 'center', marginTop: 4 }}>
+          {dataRangeHint}
+        </div>
+      )}
 
       <div
         style={{

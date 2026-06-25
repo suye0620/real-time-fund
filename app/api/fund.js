@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { isString } from 'lodash';
+import { isNumber, isString } from 'lodash';
 import { storageStore } from '../stores';
 import { withRetry } from '../lib/asyncHelper';
 import { getQueryClient } from '../lib/get-query-client';
@@ -1984,7 +1984,8 @@ export const fetchFundHistory = async (code, range = '1m') => {
         .map((d) => {
           const value = Number(d.y);
           const date = dayjs(d.x).tz(TZ).format('YYYY-MM-DD');
-          return { date, value };
+          const equityReturn = isNumber(d.equityReturn) ? Number(d.equityReturn) : null;
+          return { date, value, equityReturn };
         });
 
       // 解析 Data_grandTotal 为多条对比曲线，使用同一有效起始日

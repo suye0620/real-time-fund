@@ -1151,7 +1151,13 @@ export default function HomePage() {
         filtered = filtered.filter((f) => {
           const name = String(f?.name ?? '').toLowerCase();
           const code = String(f?.code ?? '').toLowerCase();
-          return name.includes(qLower) || code.includes(qLower);
+          let hasTagMatch = false;
+          if (f?.code && Array.isArray(fundTagListsByCode?.[f.code])) {
+            hasTagMatch = fundTagListsByCode[f.code].some(
+              (t) => t?.name && String(t.name).toLowerCase().includes(qLower)
+            );
+          }
+          return name.includes(qLower) || code.includes(qLower) || hasTagMatch;
         });
       }
 

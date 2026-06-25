@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 export default function SearchFund({
   value,
   onSearch,
-  placeholder = "筛选当前分组基金名称或代码...",
+  placeholder = "筛选当前分组基金名称、代码或标签...",
   disabled = false,
 }) {
   const inputRef = useRef(null)
